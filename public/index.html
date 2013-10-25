@@ -1,22 +1,97 @@
+<!DOCTYPE html>
 <html>
-    <head>
+<head>
+    <title>Hello Zendesk Voice</title>
 
-    </head>
+
+    <link href="http://static0.twilio.com/packages/quickstart/client.css"
+          type="text/css" rel="stylesheet" />
+
+    <script type="text/javascript"
+            src="//static.twilio.com/libs/twiliojs/1.1/twilio.min.js"></script>
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js">
+    </script>
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://localhost')
+
+        socket.on('twilio:token', function(data) {
+            Twilio.Device.setup(data.token, {debug: true});
+        })
+
+        var calls = []
+
+        socket.on('calls:new', function(data) {
+            addNewCall(data)
+        })
+
+        function addNewCall(callInfo) {
+            var html = '<li>' + callInfo.status + '|' + callInfo.sid + '<button onclick="takeCall(\''+callInfo.sid+'\');">take</button></li>'
+            console.log(html)
+            var call = $(html)
+            call.appendTo($('#calls'))
+        }
+
+        socket.on('calls:list', function(data) {
+            $('#calls').html('')
+            console.log(data)
+            for(var i = 0 ; i < data.length ; i++) {
+                addNewCall(data[i])
+            }
+        })
+
+
+
+        function takeCall(callSid) {
+            hangup()
+            socket.emit('call:answer', {sid: callSid})
+        }
+
+
+        Twilio.Device.ready(function (device) {
+            $("#log").text("Ready");
+        });
+
+        Twilio.Device.error(function (error) {
+            $("#log").text("Error: " + error.message);
+        });
+
+        Twilio.Device.connect(function (conn) {
+            $("#log").text("Successfully established call");
+        });
+
+        Twilio.Device.disconnect(function (conn) {
+            $("#log").text("Call ended");
+        });
+
+        Twilio.Device.incoming(function (conn) {
+            $("#log").text("Incoming connection from " + conn.parameters.From);
+            // accept the incoming connection and start two-way audio
+            conn.accept();
+        });
+
+        function hangup() {
+            Twilio.Device.disconnectAll();
+        }
+    </script>
+</head>
 <body>
+<button class="call" onclick="call();">
+    Call
+</button>
 
+<button class="hangup" onclick="hangup();">
+    Hangup
+</button>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-    var socket = io.connect('http://localhost');
-    socket.on('news', function (data) {
-        console.log(data);
-        socket.emit('my other event', { my: 'data' });
-    });
-</script>
+<input type="text" id="number" name="number"
+       placeholder="Enter a phone number to call"/>
 
+<div id="log">Loading pigeons...</div>
+
+<ol id="calls"></ol>
 </body>
-
-
 </html>
-
-

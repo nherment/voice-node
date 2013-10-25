@@ -1,23 +1,22 @@
 var express = require('express')
+require('express-namespace')
 var app = express()
 var server = require('http').createServer(app)
-var io = require('socket.io').listen(server);
-
+var io = require('socket.io').listen(server)
+var api = require('./lib/api.js')
+var ClientSocketHandler = require('./lib/ClientSocketHandler.js')
 
 app.use(express.static(__dirname + '/public'));
+app.use(express.cookieParser());
+app.use(express.bodyParser());
 
 var port = 3000;
 server.listen(port, function() {
-  console.log('listening to port '+port)
+  console.log('listening to port '+port);
 });
 
-app.get('/api', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
-});
+app.namespace('/api', api(app));
 
-io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
-  });
-});
+
+
+io.sockets.on('connection', ClientSocketHandler.handleClient);

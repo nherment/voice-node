@@ -1,0 +1,7 @@
+{
+  "twilio": {
+    "accountSid": "",
+    "secretToken": ""
+  },
+  "hostname": ""
+}

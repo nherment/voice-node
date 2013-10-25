@@ -11,6 +11,7 @@
   "dependencies": {
     "socket.io": "~0.9.16",
     "express": "~3.4.3",
-    "twilio": "~1.4.0"
+    "twilio": "~1.4.0",
+    "uuid": "~1.4.1"
   }
 }
