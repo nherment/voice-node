@@ -10,7 +10,7 @@ app.use(express.static(__dirname + '/public'));
 app.use(express.cookieParser());
 app.use(express.bodyParser());
 
-var port = 3000;
+var port = 3019;
 server.listen(port, function() {
   console.log('listening to port '+port);
 });
@@ -18,5 +18,5 @@ server.listen(port, function() {
 app.namespace('/api', api(app));
 
 
-
+io.set('log level', 1);
 io.sockets.on('connection', ClientSocketHandler.handleClient);

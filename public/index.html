@@ -17,8 +17,10 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var socket = io.connect('http://localhost')
-
+        var agentID;
         socket.on('twilio:token', function(data) {
+            agentID = data.agentID;
+            console.log('***agentID = ', agentID);
             Twilio.Device.setup(data.token, {debug: true});
         })
 
@@ -30,20 +32,27 @@
 
         function addNewCall(callInfo) {
             var html = '<li>' + callInfo.status + '|' + callInfo.sid + '<button onclick="takeCall(\''+callInfo.sid+'\');">take</button></li>'
-            console.log(html)
+            // console.log(html)
             var call = $(html)
             call.appendTo($('#calls'))
         }
 
         socket.on('calls:list', function(data) {
             $('#calls').html('')
-            console.log(data)
+            // console.log(data)
             for(var i = 0 ; i < data.length ; i++) {
                 addNewCall(data[i])
             }
         })
 
 
+        socket.on('agent:available', function(data) {
+            console.log('agent_available data', data);
+        })
+
+        socket.on('agent:unavailable', function(data) {
+            console.log('agent_unavailable data', data);
+        })
 
         function takeCall(callSid) {
             hangup()
@@ -76,6 +85,14 @@
         function hangup() {
             Twilio.Device.disconnectAll();
         }
+
+        function makeAvailable() {
+            socket.emit('agent:available', {agent_id: agentID})
+        }
+
+        function makeUnavailable() {
+            socket.emit('agent:unavailable', {agent_id: agentID})
+        }
     </script>
 </head>
 <body>
@@ -91,6 +108,14 @@
        placeholder="Enter a phone number to call"/>
 
 <div id="log">Loading pigeons...</div>
+
+<button class="available" onclick="makeAvailable();">
+    Make Available
+</button>
+
+<button class="available" onclick="makeUnavailable();">
+    Make Unavailable
+</button>
 
 <ol id="calls"></ol>
 </body>
